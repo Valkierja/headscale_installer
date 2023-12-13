@@ -4,10 +4,14 @@ echo "make sure using root user"
 
 
 apt update && apt upgrade
-apt install -y wget git openssl curl nginx vim 
+apt install -y wget git openssl curl nginx vim zip
 
 mkdir TEMP_SCALEINSTALL
+
+# you can safely delete and you should delete this folder if previous install was interupted
 cd TEMP_SCALEINSTALL
+echo "cd TEMP_SCALEINSTALL"
+echo "you should delete ALL this folder if previous install was interupted"
 wget --output-document=headscale.deb https://github.com/juanfont/headscale/releases/download/v0.22.3/headscale_0.22.3_linux_amd64.deb
 dpkg --install headscale.deb
 systemctl enable headscale --now
@@ -15,7 +19,7 @@ systemctl enable headscale --now
 read -p "make sure change IP and Port manully in this script, press anything to continue" VOID
 HEADSCALE_IP="148.135.81.235"
 HEADSCALE_VPN_Port="1234"
-HEADSCALE_Nginx_Port=""
+HEADSCALE_Nginx_Port="12455"
 
 #DO NOT CHANGE UNDER LINES
 server_url="server_url: http://$HEADSCALE_IP:$HEADSCALE_VPN_Port"
@@ -60,6 +64,26 @@ else
 fi
 
 read -p "WARNNING! going to change Nginx config file */etc/nginx/sites-available/default*, backup is /etc/nginx/sites-available/default.bak, press anything to continue" VOID
+cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
 
+wget --output-document=tempNginx https://raw.githubusercontent.com/Valkierja/headscale_installer/main/cfg/default
+cat "tempNginx" > default
+echo "" >> default
+cat "/etc/nginx/sites-available/default.bak" >> default
+filename="default"
+new_server_port="    listen ${HEADSCALE_Nginx_Port};"
+new_server_url="    server_name ${HEADSCALE_IP};"
+sed -i "7s,.*,${new_server_port}," "$filename"
+sed -i "9s,.*,${new_server_url}," "$filename"
+cp default
 
- 
+wget https://github.com/gurucomputing/headscale-ui/releases/download/2023.01.30-beta-1/headscale-ui.zip
+unzip -d /var/www headscale-ui.zip
+systemctl start headscale --now
+systemctl restart nginx --now
+echo "save next line, it's your SECRET KEY!!"
+headscale apikeys create --expiration 9999d
+echo "go to http://${HEADSCALE_IP}:${HEADSCALE_Nginx_Port}/web"
+echo "check doc for next operation"
+cd ..
+rm -rf TEMP_SCALEINSTALL
