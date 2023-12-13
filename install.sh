@@ -17,9 +17,9 @@ dpkg --install headscale.deb
 systemctl enable headscale --now
 
 read -p "make sure change IP and Port manully in this script, press anything to continue" VOID
-HEADSCALE_IP="148.135.81.235"
-HEADSCALE_VPN_Port="1234"
-HEADSCALE_Nginx_Port="12455"
+HEADSCALE_IP=""
+HEADSCALE_VPN_Port=""
+HEADSCALE_Nginx_Port=""
 
 #DO NOT CHANGE UNDER LINES
 server_url="server_url: http://$HEADSCALE_IP:$HEADSCALE_VPN_Port"
